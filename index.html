@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Acces & Programare Server AI Local</title>
+    <style>
+        :root {
+            --bg-main: #090d16;
+            --bg-card: #111827;
+            --border-color: #1f2937;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --accent-red: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 30px 15px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 35px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .badge-system {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-purple);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Carduri Specs */
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .spec-item {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .spec-item .spec-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .spec-item .spec-value {
+            font-size: 0.9rem;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        /* Card general */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            color: #ffffff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Alerte mesaje */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .alert.success { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-green); color: var(--accent-green); display: block; }
+        .alert.error { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--accent-red); color: var(--accent-red); display: block; }
+
+        /* Formular */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group input, .form-group select {
+            background-color: #030712;
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .btn-submit {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover { background-color: #2563eb; }
+
+        /* Tabel disponibilitate */
+        .slots-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .slots-table th, .slots-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .slots-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .status-free { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-busy { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* Buton Acces Server jos */
+        .server-access-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(59, 130, 246, 0.08));
+            border: 1px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .server-access-card h3 {
+            color: #ffffff;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .server-access-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .btn-access {
+            display: inline-block;
+            background-color: var(--accent-green);
+            color: #000000;
+            font-weight: bold;
+            padding: 14px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-access:hover {
+            background-color: #059669;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="page-header">
+        <span class="badge-system">Portal Programare & Management Server</span>
+        <h1>Arhitectură AI Locală • Unsloth & Odysseus</h1>
+        <p>Verifică disponibilitatea resurselor hardware și programează un slot orar pentru accesul în siguranță.</p>
+    </header>
+
+    <!-- Specificamente Hardware -->
+    <div class="specs-grid">
+        <div class="spec-item">
+            <div class="spec-label">Procesor</div>
+            <div class="spec-value">AMD 16-Core</div>
+        </div>
+        <div class="spec-item">
+            <div class="spec-label">Memorie RAM</div>
+            <div class="spec-value">64 GB DDR5</div>
+        </div>
+        <div class="spec-item">
+            <div class="spec-label">Placă Video VRAM</div>
+            <div class="spec-value">RX 9060 (16 GB)</div>
+        </div>
+        <div class="spec-item">
+            <div class="spec-label">Stocare SSD</div>
+            <div class="spec-value">3 TB (1.5 NVMe + 1.5 SATA)</div>
+        </div>
+    </div>
+
+    <div id="alertBox" class="alert"></div>
+
+    <!-- Formular Rezervare Slot -->
+    <div class="card">
+        <h2>📅 Rezervă un Interval Orar</h2>
+        <form id="bookingForm" onsubmit="handleBooking(event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="nume">Nume și Prenume (ID Utilizator)</label>
+                    <input type="text" id="nume" required placeholder="ex: Alexandru Dumbrăva">
+                </div>
+                <div class="form-group">
+                    <label for="data_slot">Data Dorită</label>
+                    <input type="date" id="data_slot" required onchange="renderSlots()">
+                </div>
+                <div class="form-group">
+                    <label for="ora_start">Alege Slotul Orar (1 oră)</label>
+                    <select id="ora_start" required>
+                        <!-- Generat dinamic prin JS -->
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">Confirmă Programarea Slotului</button>
+        </form>
+    </div>
+
+    <!-- Vizualizare Stare Server pentru Data Selectată -->
+    <div class="card">
+        <h2>📊 Status Server & Programări pentru: <span id="selectedDateDisplay" style="color: var(--accent-blue);">Azi</span></h2>
+        <table class="slots-table">
+            <thead>
+                <tr>
+                    <th>Interval Orar</th>
+                    <th>Status Server</th>
+                    <th>Utilizator / Rezervat de</th>
+                </tr>
+            </thead>
+            <tbody id="slotsTableBody">
+                <tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Se încarcă datele de pe server...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- BUTON ACCES SERVER (CLOUDflare) -->
+    <div class="server-access-card">
+        <h3>🚀 Poarta de Acces Directă în Server</h3>
+        <p>După ce ai programat un slot sau pentru verificarea activității curente, accesează interfața securizată prin tunel:</p>
+        <a href="https://would-curve-brave-broadband.trycloudflare.com" target="_blank" class="btn-access">Accesează Serverul AI (Cloudflare) ↗</a>
+    </div>
+
+    <footer>
+        Server AI Local • Unsloth & Odysseus Integration • Stocare Cloud JSONbin.io
+    </footer>
+</div>
+
+<script>
+    const BIN_ID = '6acd648fffd5d16053659b99';
+    const MASTER_KEY = '$2a$10$rBsXRieW82/yAF/9cK.DyeeIDfOJ.7XAfwfGfHM3OYlRyWBqXH.JC';
+
+    const standardSlots = [
+        "09:00 - 10:00", "10:00 - 11:00", "11:00 - 12:00", "12:00 - 13:00",
+        "13:00 - 14:00", "14:00 - 15:00", "15:00 - 16:00", "16:00 - 17:00"
+    ];
+
+    let bookings = [];
+
+    const dateInput = document.getElementById('data_slot');
+    dateInput.value = new Date().toISOString().split('T')[0];
+
+    // Preluare programări din JSONbin.io
+    async function loadBookings() {
+        try {
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                headers: {
+                    'X-Master-Key': MASTER_KEY
+                }
+            });
+            const data = await response.json();
+            // Structura din JSONbin poate fi direct array sau sub obiectul "programari"
+            if (Array.isArray(data.record)) {
+                bookings = data.record;
+            } else if (data.record && Array.isArray(data.record.programari)) {
+                bookings = data.record.programari;
+            } else {
+                bookings = [];
+            }
+            renderSlots();
+        } catch (error) {
+            console.error("Eroare la preluarea datelor:", error);
+            showAlert("Eroare la conectarea cu baza de date cloud.", "error");
+        }
+    }
+
+    function renderSlots() {
+        const currentDate = dateInput.value;
+        document.getElementById('selectedDateDisplay').textContent = currentDate;
+        
+        const tableBody = document.getElementById('slotsTableBody');
+        const selectOra = document.getElementById('ora_start');
+        
+        tableBody.innerHTML = '';
+        selectOra.innerHTML = '';
+
+        standardSlots.forEach(slot => {
+            const found = bookings.find(b => b.data === currentDate && b.slot === slot);
+            
+            const tr = document.createElement('tr');
+            if (found) {
+                tr.innerHTML = `
+                    <td><strong>${slot}</strong></td>
+                    <td><span class="status-badge status-busy">Ocupat în Lucru</span></td>
+                    <td style="color: var(--text-secondary);">Rezervat de <em>${found.nume}</em></td>
+                `;
+            } else {
+                tr.innerHTML = `
+                    <td><strong>${slot}</strong></td>
+                    <td><span class="status-badge status-free">Liber</span></td>
+                    <td style="color: var(--accent-green);">Disponibil pentru rezervare</td>
+                `;
+                const opt = document.createElement('option');
+                opt.value = slot;
+                opt.textContent = `${slot} (Disponibil)`;
+                selectOra.appendChild(opt);
+            }
+            tableBody.appendChild(tr);
+        });
+
+        if (selectOra.options.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = "";
+            opt.textContent = "Toate sloturile sunt ocupate pentru această dată";
+            selectOra.appendChild(opt);
+        }
+    }
+
+    async function handleBooking(event) {
+        event.preventDefault();
+        const nume = document.getElementById('nume').value.trim();
+        const date = dateInput.value;
+        const slot = document.getElementById('ora_start').value;
+
+        if (!slot) return;
+
+        // Adăugăm noua programare în listă
+        bookings.push({ nume, data: date, slot });
+
+        try {
+            // Salvăm lista actualizată în JSONbin.io
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': MASTER_KEY
+                },
+                body: JSON.stringify(bookings)
+            });
+
+            if (response.ok) {
+                showAlert(`Programare reușită pentru ${date}, între ${slot}!`, "success");
+                document.getElementById('bookingForm').reset();
+                dateInput.value = date;
+                renderSlots();
+            } else {
+                showAlert("Eroare la salvarea pe server.", "error");
+            }
+        } catch (error) {
+            console.error("Eroare:", error);
+            showAlert("Eroare de rețea la salvare.", "error");
+        }
+    }
+
+    function showAlert(message, type) {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.className = `alert ${type}`;
+        alertBox.textContent = message;
+        setTimeout(() => {
+            alertBox.style.display = 'none';
+        }, 5000);
+    }
+
+    // Încărcare inițială la deschiderea paginii
+    loadBookings();
+</script>
+
+</body>
+</html>
