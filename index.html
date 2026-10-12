@@ -160,6 +160,13 @@
             border-color: var(--accent-blue);
         }
 
+        /* Container selectoare dată (Zi / Lună / An) */
+        .date-selectors {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 8px;
+        }
+
         .btn-submit {
             background-color: var(--accent-blue);
             color: white;
@@ -294,12 +301,31 @@
                     <label for="nume">Nume și Prenume (ID Utilizator)</label>
                     <input type="text" id="nume" required placeholder="ex: Alexandru Dumbrăva">
                 </div>
+                
                 <div class="form-group">
-                    <label for="data_slot">Data Dorită</label>
-                    <input type="date" id="data_slot" required onchange="renderSlots()">
+                    <label>Data Dorită (Zi / Lună / An)</label>
+                    <div class="date-selectors">
+                        <select id="selectZi" required onchange="onDateChange()"></select>
+                        <select id="selectLuna" required onchange="onDateChange()">
+                            <option value="01">Ianuarie</option>
+                            <option value="02">Februarie</option>
+                            <option value="03">Martie</option>
+                            <option value="04">Aprilie</option>
+                            <option value="05">Mai</option>
+                            <option value="06">Iunie</option>
+                            <option value="07">Iulie</option>
+                            <option value="08">August</option>
+                            <option value="09">Septembrie</option>
+                            <option value="10">Octombrie</option>
+                            <option value="11">Noiembrie</option>
+                            <option value="12">Decembrie</option>
+                        </select>
+                        <select id="selectAn" required onchange="onDateChange()"></select>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label for="ora_start">Alege Slotul Orar (1 oră)</label>
+                    <label for="ora_start">Alege Slotul Orar (09:00 - 22:00)</label>
                     <select id="ora_start" required>
                         <!-- Generat dinamic prin JS -->
                     </select>
@@ -338,134 +364,6 @@
     </footer>
 </div>
 
-<script>
-    const BIN_ID = '6acd648fffd5d16053659b99';
-    const MASTER_KEY = '$2a$10$rBsXRieW82/yAF/9cK.DyeeIDfOJ.7XAfwfGfHM3OYlRyWBqXH.JC';
-
-    const standardSlots = [
-        "09:00 - 10:00", "10:00 - 11:00", "11:00 - 12:00", "12:00 - 13:00",
-        "13:00 - 14:00", "14:00 - 15:00", "15:00 - 16:00", "16:00 - 17:00"
-    ];
-
-    let bookings = [];
-
-    const dateInput = document.getElementById('data_slot');
-    dateInput.value = new Date().toISOString().split('T')[0];
-
-    // Preluare programări din JSONbin.io
-    async function loadBookings() {
-        try {
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                headers: {
-                    'X-Master-Key': MASTER_KEY
-                }
-            });
-            const data = await response.json();
-            // Structura din JSONbin poate fi direct array sau sub obiectul "programari"
-            if (Array.isArray(data.record)) {
-                bookings = data.record;
-            } else if (data.record && Array.isArray(data.record.programari)) {
-                bookings = data.record.programari;
-            } else {
-                bookings = [];
-            }
-            renderSlots();
-        } catch (error) {
-            console.error("Eroare la preluarea datelor:", error);
-            showAlert("Eroare la conectarea cu baza de date cloud.", "error");
-        }
-    }
-
-    function renderSlots() {
-        const currentDate = dateInput.value;
-        document.getElementById('selectedDateDisplay').textContent = currentDate;
-        
-        const tableBody = document.getElementById('slotsTableBody');
-        const selectOra = document.getElementById('ora_start');
-        
-        tableBody.innerHTML = '';
-        selectOra.innerHTML = '';
-
-        standardSlots.forEach(slot => {
-            const found = bookings.find(b => b.data === currentDate && b.slot === slot);
-            
-            const tr = document.createElement('tr');
-            if (found) {
-                tr.innerHTML = `
-                    <td><strong>${slot}</strong></td>
-                    <td><span class="status-badge status-busy">Ocupat în Lucru</span></td>
-                    <td style="color: var(--text-secondary);">Rezervat de <em>${found.nume}</em></td>
-                `;
-            } else {
-                tr.innerHTML = `
-                    <td><strong>${slot}</strong></td>
-                    <td><span class="status-badge status-free">Liber</span></td>
-                    <td style="color: var(--accent-green);">Disponibil pentru rezervare</td>
-                `;
-                const opt = document.createElement('option');
-                opt.value = slot;
-                opt.textContent = `${slot} (Disponibil)`;
-                selectOra.appendChild(opt);
-            }
-            tableBody.appendChild(tr);
-        });
-
-        if (selectOra.options.length === 0) {
-            const opt = document.createElement('option');
-            opt.value = "";
-            opt.textContent = "Toate sloturile sunt ocupate pentru această dată";
-            selectOra.appendChild(opt);
-        }
-    }
-
-    async function handleBooking(event) {
-        event.preventDefault();
-        const nume = document.getElementById('nume').value.trim();
-        const date = dateInput.value;
-        const slot = document.getElementById('ora_start').value;
-
-        if (!slot) return;
-
-        // Adăugăm noua programare în listă
-        bookings.push({ nume, data: date, slot });
-
-        try {
-            // Salvăm lista actualizată în JSONbin.io
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': MASTER_KEY
-                },
-                body: JSON.stringify(bookings)
-            });
-
-            if (response.ok) {
-                showAlert(`Programare reușită pentru ${date}, între ${slot}!`, "success");
-                document.getElementById('bookingForm').reset();
-                dateInput.value = date;
-                renderSlots();
-            } else {
-                showAlert("Eroare la salvarea pe server.", "error");
-            }
-        } catch (error) {
-            console.error("Eroare:", error);
-            showAlert("Eroare de rețea la salvare.", "error");
-        }
-    }
-
-    function showAlert(message, type) {
-        const alertBox = document.getElementById('alertBox');
-        alertBox.className = `alert ${type}`;
-        alertBox.textContent = message;
-        setTimeout(() => {
-            alertBox.style.display = 'none';
-        }, 5000);
-    }
-
-    // Încărcare inițială la deschiderea paginii
-    loadBookings();
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
